@@ -18,7 +18,7 @@ CHECKER_PAGE_URI = 'http://clang-analyzer.llvm.org/'
 # settings to be tweaked by the user
 CHECKER_INSTALL_LOCATION = '~/bin/'
 CHECKER_SYMLINK_LOCATION = '~/bin/checker'
-CLEAN_OLD_INSTALLS = true
+REMOVE_OLD_INSTALL = true
 
 
 
@@ -30,7 +30,7 @@ end
 
 
 if $0 == __FILE__
-  options = OpenStruct.new("clean" => CLEAN_OLD_INSTALLS)
+  options = OpenStruct.new("clean" => REMOVE_OLD_INSTALL)
   opts = OptionParser.new do |opts|
     opts.banner = "Usage: #{File.basename(__FILE__, File.extname(__FILE__))} [options]"
 

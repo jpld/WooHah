@@ -20,8 +20,26 @@ CHECKER_INSTALL_LOCATION = '~/bin/'
 CHECKER_SYMLINK_LOCATION = '~/bin/checker'
 REMOVE_OLD_INSTALL = true
 
+class CommandRunner
+  # TODO - should probably grab and return stderr
+  def self.system(command)
+    %x{ #{command} }
+  end
+
+  # use openstruct
+  def self.system2(commandString)
+    out = ''
+    err = ''
+    Open3.popen3(commandString) do |stdin, stdout, stderr|
+      out = stdout.read
+      err = stderr.read
+    end
+    out
+  end
+end
+
 class GotYouAllInCheck
-  attr_reader :version_latest_uri
+  attr_reader :version_latest_uri, :symlink_path
 
   def version_latest
     if @version_latest.nil?
@@ -49,9 +67,9 @@ class GotYouAllInCheck
   def version_installed
     if @version_installed.nil?
       old_path = nil
-      symlink_path = File.expand_path CHECKER_SYMLINK_LOCATION
-      if File.exists? symlink_path and File.symlink? symlink_path
-        old_path = File.readlink(symlink_path)
+      @symlink_path = File.expand_path CHECKER_SYMLINK_LOCATION
+      if File.exists? symlink_path and File.symlink? @symlink_path
+        old_path = File.readlink(@symlink_path)
         @version_installed = File.basename old_path
       end
     end
@@ -67,9 +85,48 @@ class GotYouAllInCheck
 
     # download archive
     # if we bring in rubycocoa use NSDownloadsDirectory
-    FileUtils.cd '/tmp/'
+    FileUtils.cd '/tmp'
     archive_basename = File.basename self.version_latest_uri
     puts "downloading '#{archive_basename}'"
+
+    CommandRunner.system("curl -s -O #{self.version_latest_uri}")
+    # unarchive
+    CommandRunner.system("tar -jxvf #{archive_basename}")
+    FileUtils.rm archive_basename
+
+    unarchived_basename = File.basename(archive_basename, '.tar.bz2')
+
+    if !File.exists? File.join('/tmp', unarchived_basename)
+      puts "ERROR - cannot find unarchived analyzer directory"
+      exit 1
+    end
+
+    # rid ourselves of .svn directories
+    CommandRunner.system("find #{unarchived_basename} -name .svn -print0 | xargs -0 rm -rf")
+
+    install_path = File.expand_path(CHECKER_INSTALL_LOCATION)
+    # TODO - check for write privs
+    FileUtils.mkdir_p(install_path) unless File.exists?(install_path)
+
+    # move into install location
+    # TODO - check for write privs, check if file exists
+    FileUtils.cp_r unarchived_basename, install_path
+    FileUtils.rm_r unarchived_basename
+
+    puts "installing..."
+
+    # symlink spinup
+    symlink_path_dir = File.dirname self.symlink_path
+    # TODO - check for write privs
+    FileUtils.mkdir_p(symlink_path_dir) if !File.exists?(symlink_path_dir)
+
+    # symlink
+    # remove previous, force doesn't seem to work really
+    FileUtils.rm symlink_path if File.exists? symlink_path
+    megapath = File.join(install_path, unarchived_basename)
+    FileUtils.ln_s(megapath, symlink_path, :force => true)
+
+    # TODO - clean up
   end
 
   def print
@@ -83,7 +140,7 @@ end
 if $0 == __FILE__
   options = OpenStruct.new("clean" => REMOVE_OLD_INSTALL)
   opts = OptionParser.new do |opts|
-    opts.banner = "Usage: #{File.basename(__FILE__, File.extname(__FILE__))} [options]"
+    opts.banner = "Usage: #{File.basename(__FILE__, File.extname(__FILE__))} [options...]"
 
     opts.separator ""
     opts.separator "Common options:"

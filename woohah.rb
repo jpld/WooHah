@@ -21,6 +21,8 @@ CHECKER_SYMLINK_LOCATION = '~/bin/checker'
 REMOVE_OLD_INSTALL = true
 
 class GotYouAllInCheck
+  attr_reader :version_latest_uri
+
   def version_latest
     if @version_latest.nil?
       begin
@@ -36,6 +38,9 @@ class GotYouAllInCheck
         exit 1
       end
       @version_latest = "#{$1}"
+
+      # TODO - be smart about assembling the URI
+      @version_latest_uri = CHECKER_PAGE_URI + elem['href']
     end
 
     @version_latest
@@ -60,7 +65,11 @@ class GotYouAllInCheck
       exit
     end
 
-    # NB - something
+    # download archive
+    # if we bring in rubycocoa use NSDownloadsDirectory
+    FileUtils.cd '/tmp/'
+    archive_basename = File.basename self.version_latest_uri
+    puts "downloading '#{archive_basename}'"
   end
 
   def print
@@ -79,6 +88,7 @@ if $0 == __FILE__
     opts.separator ""
     opts.separator "Common options:"
 
+    opts.on_tail("-u", "--update", "Update to the latest") { options.update = true }
     opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
     opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
 
@@ -110,7 +120,12 @@ if $0 == __FILE__
     exit 1
   end
 
-  # dump help for now
-  puts opts
-  exit    
+  # lame command walking
+  if options.update
+    g = GotYouAllInCheck.new
+    g.update
+  else
+    puts opts
+    exit    
+  end
 end

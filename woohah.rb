@@ -11,7 +11,7 @@ require 'rubygems'
 require 'hpricot'
 require 'open-uri'
 
-WOOHAH_VERSION = "0.0.0"
+WOOHAH_VERSION = "0.1.0"
 
 CHECKER_PAGE_URI = 'http://clang-analyzer.llvm.org/'
 

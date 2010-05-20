@@ -1,2 +1,5 @@
 # GENERAL
 [ ] smartly construct uri to archive
+[ ] loosen the filename assumptions or at least centralize it to a single definition
+[ ] some remedial download progress would be cute
+[ ] check for write privs on install

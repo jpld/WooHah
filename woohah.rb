@@ -22,6 +22,13 @@ CLEAN_OLD_INSTALLS = true
 
 
 
+class GotYouAllInCheck
+  def self.print
+  end
+end
+
+
+
 if $0 == __FILE__
   options = OpenStruct.new("clean" => CLEAN_OLD_INSTALLS)
   opts = OptionParser.new do |opts|
@@ -32,6 +39,11 @@ if $0 == __FILE__
 
     opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
     opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
+
+    opts.on_tail("-p", "--print", "Print installed and latest version strings") do
+      GotYouAllInCheck.print
+      exit
+    end
 
     opts.on_tail("-h", "--help", "Show this message") do
       puts opts

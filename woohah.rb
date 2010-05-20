@@ -54,6 +54,15 @@ class GotYouAllInCheck
     @version_installed
   end
 
+  def update
+    if (self.version_latest === self.version_installed)
+      puts "no update necessary, latest version '#{self.version_latest}' already installed"
+      exit
+    end
+
+    # NB - something
+  end
+
   def print
     puts "version installed: #{(self.version_installed.nil? or self.version_installed.empty?) ? "NONE!" : self.version_installed}"
     puts "latest available: #{self.version_latest}"

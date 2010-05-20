@@ -39,7 +39,7 @@ class CommandRunner
 end
 
 class GotYouAllInCheck
-  attr_reader :version_latest_uri, :symlink_path
+  attr_reader :version_latest_uri, :symlink_path, :old_path
 
   def version_latest
     if @version_latest.nil?
@@ -69,15 +69,15 @@ class GotYouAllInCheck
       old_path = nil
       @symlink_path = File.expand_path CHECKER_SYMLINK_LOCATION
       if File.exists? symlink_path and File.symlink? @symlink_path
-        old_path = File.readlink(@symlink_path)
-        @version_installed = File.basename old_path
+        @old_path = File.readlink(@symlink_path)
+        @version_installed = File.basename @old_path
       end
     end
 
     @version_installed
   end
 
-  def update
+  def update(clean)
     if (self.version_latest === self.version_installed)
       puts "no update necessary, latest version '#{self.version_latest}' already installed"
       exit
@@ -126,7 +126,11 @@ class GotYouAllInCheck
     megapath = File.join(install_path, unarchived_basename)
     FileUtils.ln_s(megapath, symlink_path, :force => true)
 
-    # TODO - clean up
+    # clean
+    if clean and not self.old_path.nil? and File.basename(self.old_path) =~ /^checker\-(.*)$/
+      puts "removing previously installed version at path #{self.old_path}"
+      FileUtils.rm_r self.old_path
+    end
   end
 
   def print
@@ -146,14 +150,15 @@ if $0 == __FILE__
     opts.separator "Common options:"
 
     opts.on_tail("-u", "--update", "Update to the latest") { options.update = true }
-    opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
-    opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
 
     opts.on_tail("-p", "--print", "Print installed and latest version strings") do
       g = GotYouAllInCheck.new
       g.print
       exit
     end
+
+    opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
+    opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
 
     opts.on_tail("-h", "--help", "Show this message") do
       puts opts
@@ -177,12 +182,10 @@ if $0 == __FILE__
     exit 1
   end
 
-  # lame command walking
+  g = GotYouAllInCheck.new
   if options.update
-    g = GotYouAllInCheck.new
-    g.update
+    g.update(options.clean)
   else
-    puts opts
-    exit    
+    g.print
   end
 end

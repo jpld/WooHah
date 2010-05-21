@@ -15,6 +15,9 @@ WOOHAH_VERSION = "0.1.0"
 
 CHECKER_PAGE_URI = 'http://clang-analyzer.llvm.org/'
 
+XCODE_SPEC = '/Developer/Library/Xcode/Plug-ins/Clang LLVM 1.0.xcplugin/Contents/Resources/Clang LLVM 1.0.xcspec'
+XCODE_SPEC_MARKER = 'ExecPath = "$(CLANG)";'
+
 # settings to be tweaked by the user
 CHECKER_INSTALL_LOCATION = '~/bin/'
 CHECKER_SYMLINK_LOCATION = '~/bin/checker'
@@ -133,6 +136,21 @@ class GotYouAllInCheck
     end
   end
 
+  def xyzzy
+    unless File.exists?(XCODE_SPEC)
+      puts "ERROR: did not find Xcode spec file at path '#{XCODE_SPEC}'"
+      exit 1
+    end
+
+    text = File.read(XCODE_SPEC)
+    unless text.include? XCODE_SPEC_MARKER
+      puts "ERROR: did not find Xcode spec replacement marker, no setup necessary"
+      exit 1
+    end
+    new_exec_path = "ExecPath = \"" + File.join(File.expand_path(CHECKER_SYMLINK_LOCATION), "bin/clang") +"\";"
+    File.open(XCODE_SPEC, "w") {|file| file.puts text.sub(XCODE_SPEC_MARKER, new_exec_path) }
+  end
+
   def print
     puts "version installed: #{(self.version_installed.nil? or self.version_installed.empty?) ? "NONE!" : self.version_installed}"
     puts "latest available: #{self.version_latest}"
@@ -149,16 +167,18 @@ if $0 == __FILE__
     opts.separator ""
     opts.separator "Common options:"
 
-    opts.on_tail("-u", "--update", "Update to the latest") { options.update = true }
-
     opts.on_tail("-p", "--print", "Print installed and latest version strings") do
       g = GotYouAllInCheck.new
       g.print
       exit
     end
 
+    opts.on_tail("-u", "--update", "Update to the latest") { options.update = true }
     opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
     opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
+
+
+    opts.on_tail("-s", "--setup", "Have Xcode to use local build for analysis") { options.xyzzy = true }
 
     opts.on_tail("-h", "--help", "Show this message") do
       puts opts
@@ -182,10 +202,14 @@ if $0 == __FILE__
     exit 1
   end
 
-  g = GotYouAllInCheck.new
   if options.update
+    g = GotYouAllInCheck.new
     g.update(options.clean)
+  elsif options.xyzzy
+    g = GotYouAllInCheck.new
+    g.xyzzy
   else
-    g.print
+    puts opts
+    exit
   end
 end

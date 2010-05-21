@@ -186,11 +186,10 @@ if $0 == __FILE__
     end
 
     opts.on_tail("-u", "--update", "Update to the latest") { options.update = true }
-    opts.on_tail("-c", "--clean", "Remove old copy on install of new") { options.clean = true }
-    opts.on_tail("-d", "--dirty", "Keep old copy on install of new") { options.clean = false }
+    opts.on_tail("-d", "--dirty", "Keep old copy when updating") { options.clean = false }
 
 
-    opts.on_tail("-s", "--setup", "Have Xcode to use local build for analysis") { options.xyzzy = true }
+    opts.on_tail("-s", "--setup-xcode", "Have Xcode to use local build for analysis") { options.xyzzy = true }
 
     opts.on_tail("-h", "--help", "Show this message") do
       puts opts

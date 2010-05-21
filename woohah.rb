@@ -11,7 +11,7 @@ require 'rubygems'
 require 'hpricot'
 require 'open-uri'
 
-WOOHAH_VERSION = "0.1.0"
+WOOHAH_VERSION = "0.2.0"
 
 CHECKER_PAGE_URI = 'http://clang-analyzer.llvm.org/'
 
@@ -198,7 +198,7 @@ if $0 == __FILE__
     end
 
     # Another typical switch to print the version.
-    opts.on_tail('-v', "--version", "Show version") do
+    opts.on_tail('-v', "--version", "Show script version") do
       puts WOOHAH_VERSION
       exit
     end

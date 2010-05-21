@@ -142,13 +142,25 @@ class GotYouAllInCheck
       exit 1
     end
 
-    text = File.read(XCODE_SPEC)
-    unless text.include? XCODE_SPEC_MARKER
-      puts "ERROR: did not find Xcode spec replacement marker, no setup necessary"
+    local_build_path = File.join(File.expand_path(CHECKER_SYMLINK_LOCATION), "bin/clang")
+    new_exec_path = "ExecPath = \"" + local_build_path  + "\";"
+    unless File.exists?(local_build_path)
+      puts "ERROR: no local build to point to"
       exit 1
     end
-    new_exec_path = "ExecPath = \"" + File.join(File.expand_path(CHECKER_SYMLINK_LOCATION), "bin/clang") +"\";"
+
+    text = File.read(XCODE_SPEC)
+    if text.include? new_exec_path
+      puts "Xcode spec already pointing to local build"
+      exit
+    end
+
+    unless text.include? XCODE_SPEC_MARKER
+      puts "ERROR: did not find Xcode spec replacement marker"
+      exit 1
+    end
     File.open(XCODE_SPEC, "w") {|file| file.puts text.sub(XCODE_SPEC_MARKER, new_exec_path) }
+    puts "Xcode spec updated to use local build for analysis"
   end
 
   def print

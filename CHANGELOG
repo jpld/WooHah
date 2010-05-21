@@ -1,3 +1,7 @@
+v0.2.1 (21 May 2010)
+* remove clean command since it is the default
+* rename setup command to setup-xcode
+
 v0.2.0 (21 May 2010)
 * add command to update xcode spec to use local build for analysis
 

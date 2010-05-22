@@ -15,13 +15,14 @@ WOOHAH_VERSION = "0.2.1"
 
 CHECKER_PAGE_URI = 'http://clang-analyzer.llvm.org/'
 
-XCODE_SPEC = '/Developer/Library/Xcode/Plug-ins/Clang LLVM 1.0.xcplugin/Contents/Resources/Clang LLVM 1.0.xcspec'
+XCODE_SPEC_FPATH = '/Developer/Library/Xcode/Plug-ins/Clang LLVM 1.0.xcplugin/Contents/Resources/Clang LLVM 1.0.xcspec'
 XCODE_SPEC_MARKER = 'ExecPath = "$(CLANG)";'
+
+REMOVE_OLD_INSTALL = true
 
 # settings to be tweaked by the user
 CHECKER_INSTALL_LOCATION = '~/bin/'
 CHECKER_SYMLINK_LOCATION = '~/bin/checker'
-REMOVE_OLD_INSTALL = true
 
 class CommandRunner
   # TODO - should probably grab and return stderr
@@ -137,8 +138,8 @@ class GotYouAllInCheck
   end
 
   def xyzzy
-    unless File.exists?(XCODE_SPEC)
-      puts "ERROR: did not find Xcode spec file at path '#{XCODE_SPEC}'"
+    unless File.exists?(XCODE_SPEC_FPATH)
+      puts "ERROR: did not find Xcode spec file at path '#{XCODE_SPEC_FPATH}'"
       exit 1
     end
 
@@ -149,7 +150,7 @@ class GotYouAllInCheck
       exit 1
     end
 
-    text = File.read(XCODE_SPEC)
+    text = File.read(XCODE_SPEC_FPATH)
     if text.include? new_exec_path
       puts "Xcode spec already pointing to local build"
       exit
@@ -159,7 +160,7 @@ class GotYouAllInCheck
       puts "ERROR: did not find Xcode spec replacement marker"
       exit 1
     end
-    File.open(XCODE_SPEC, "w") {|file| file.puts text.sub(XCODE_SPEC_MARKER, new_exec_path) }
+    File.open(XCODE_SPEC_FPATH, "w") {|file| file.puts text.sub(XCODE_SPEC_MARKER, new_exec_path) }
     puts "Xcode spec updated to use local build for analysis"
   end
 

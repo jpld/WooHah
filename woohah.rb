@@ -162,7 +162,7 @@ class GotYouAllInCheck
 
     text = File.read(XCODE_SPEC_FPATH)
     if text.include? new_exec_path
-      puts "Xcode spec already pointing to local build"
+      puts "Xcode spec already pointing to local build for analysis"
       exit
     end
 

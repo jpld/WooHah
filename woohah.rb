@@ -59,10 +59,14 @@ class GotYouAllInCheck
         puts "ERROR - did not find the checker download link on page #{CHECKER_PAGE_URI}"
         exit 1
       end
-      @version_latest = "#{$1}"
+      @version_latest = $1
 
-      # TODO - be smart about assembling the URI
-      @version_latest_uri = CHECKER_PAGE_URI + elem['href']
+      # TODO - be smarter about assembling the URI
+      if elem['href'].match(/^http/)
+        @version_latest_uri = elem['href']
+      else
+        @version_latest_uri = CHECKER_PAGE_URI + elem['href']
+      end
     end
 
     @version_latest
@@ -90,10 +94,16 @@ class GotYouAllInCheck
     # download archive
     # if we bring in rubycocoa use NSDownloadsDirectory
     FileUtils.cd '/tmp'
+
     archive_basename = File.basename self.version_latest_uri
+    out = CommandRunner.system("curl -s -I #{self.version_latest_uri}")
+    if out.match(/filename=\"(.*)\"/)
+      archive_basename = $1
+    end
+
     puts "downloading '#{archive_basename}'"
 
-    CommandRunner.system("curl -s -O #{self.version_latest_uri}")
+    CommandRunner.system("curl -s #{self.version_latest_uri} -o #{archive_basename}")
     # unarchive
     CommandRunner.system("tar -jxvf #{archive_basename}")
     FileUtils.rm archive_basename

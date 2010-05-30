@@ -185,6 +185,7 @@ end
 if $0 == __FILE__
   options = OpenStruct.new("clean" => REMOVE_OLD_INSTALL)
   opts = OptionParser.new do |opts|
+    # TODO - this '[options...]' business isn't quite right
     opts.banner = "Usage: #{File.basename(__FILE__, File.extname(__FILE__))} [options...]"
 
     opts.separator ""

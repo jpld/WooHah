@@ -1,3 +1,7 @@
+v0.2.5 (22 Jun 2010)
+* display download progress for checker archive
+* improve status messages logged to console
+
 v0.2.2 (27 May 2010)
 * make archive uri and archive name 'guess' more flexible to handle checker-241
 

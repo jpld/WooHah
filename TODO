@@ -3,6 +3,6 @@
 [ ] more robust construction of archive uri
 [ ] loosen the filename assumptions or at least centralize it to a single definition
 [ ] check for write privs on install
-[ ] some remedial download progress would be cute
+[X] some remedial download progress would be cute
 [X] command to update Xcode plug-in spec to point to updated clang for analysis only
 [ ] make it installable as a gem, via jeweler!

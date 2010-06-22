@@ -24,6 +24,69 @@ REMOVE_OLD_INSTALL = true
 CHECKER_INSTALL_LOCATION = '~/bin/'
 CHECKER_SYMLINK_LOCATION = '~/bin/checker'
 
+
+# TAKEN FROM HOMEBREW <http://github.com/mxcl/homebrew/blob/master/Library/Homebrew/global.rb>
+class ExecutionError <RuntimeError
+  attr :exit_status
+  attr :command
+
+  def initialize cmd, args = [], es = nil
+    @command = cmd
+    super "Failure while executing: #{cmd} #{pretty(args)*' '}"
+    @exit_status = es.exitstatus rescue 1
+  end
+
+  # def was_running_configure?
+  #   @command == './configure'
+  # end
+
+  private
+
+  def pretty args
+    args.collect do |arg|
+      if arg.to_s.include? ' '
+        "'#{ arg.gsub "'", "\\'" }'"
+      else
+        arg
+      end
+    end
+  end
+end
+
+# TAKEN FROM HOMEBREW <http://github.com/mxcl/homebrew/blob/master/Library/Homebrew/utils.rb>
+module Homebrew
+  def self.system cmd, *args
+    # puts "#{cmd} #{args*' '}" if ARGV.verbose?
+    fork do
+      yield if block_given?
+      args.collect!{|arg| arg.to_s}
+      exec(cmd, *args) rescue nil
+      exit! 1 # never gets here unless exec failed
+    end
+    Process.wait
+    $?.success?
+  end
+end
+
+# Kernel.system but with exceptions
+def safe_system cmd, *args
+  raise ExecutionError.new(cmd, args, $?) unless Homebrew.system(cmd, *args)
+end
+
+# prints no output
+def quiet_system cmd, *args
+  Homebrew.system(cmd, *args) do
+    $stdout.close
+    $stderr.close
+  end
+end
+
+def curl *args
+  safe_system 'curl', '-f#L', *args unless args.empty?
+end
+
+
+
 class CommandRunner
   # TODO - should probably grab and return stderr
   def self.system(command)
@@ -103,7 +166,8 @@ class GotYouAllInCheck
 
     puts "downloading '#{archive_basename}'"
 
-    CommandRunner.system("curl -s #{self.version_latest_uri} -o #{archive_basename}")
+    # CommandRunner.system("curl -s #{self.version_latest_uri} -o #{archive_basename}")
+    curl self.version_latest_uri, '-o', archive_basename
     # unarchive
     CommandRunner.system("tar -jxvf #{archive_basename}")
     FileUtils.rm archive_basename

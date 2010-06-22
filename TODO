@@ -1,5 +1,5 @@
 # GENERAL
-[ ] print appropraite message on first install
+[X] print appropraite message on first install
 [ ] more robust construction of archive uri
 [ ] loosen the filename assumptions or at least centralize it to a single definition
 [ ] check for write privs on install

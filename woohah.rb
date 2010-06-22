@@ -132,14 +132,14 @@ class GotYouAllInCheck
 
   def update(clean)
     if (self.version_latest === self.version_installed)
-      puts "no update necessary, latest version '#{self.version_latest}' already installed"
+      puts "latest version '#{self.version_latest}' already installed"
       exit
     end
 
     if self.version_installed.nil? or self.version_installed.empty?
-      puts "installing #{self.version_latest}"
+      puts "installing '#{self.version_latest}'"
     else
-      puts "updating from #{self.version_installed} to #{self.version_latest}"
+      puts "updating from '#{self.version_installed}' to '#{self.version_latest}'"
     end
 
     # download archive
@@ -153,11 +153,12 @@ class GotYouAllInCheck
       archive_basename = $1
     end
 
-    puts "downloading '#{archive_basename}'"
+    puts "downloading '#{self.version_latest_uri}'"
 
     curl(self.version_latest_uri, '-o', archive_basename)
     # unarchive
-    safe_system('tar', '-jxvf', archive_basename)
+    puts "unarchiving..."
+    quiet_system('tar', '-jxvf', archive_basename)
     FileUtils.rm archive_basename
 
     unarchived_basename = File.basename(archive_basename, '.tar.bz2')
@@ -179,7 +180,7 @@ class GotYouAllInCheck
     FileUtils.cp_r unarchived_basename, install_path
     FileUtils.rm_r unarchived_basename
 
-    puts "installing..."
+    puts "installing"
 
     # symlink spinup
     symlink_path_dir = File.dirname self.symlink_path
@@ -280,10 +281,12 @@ if $0 == __FILE__
   if options.update
     g = GotYouAllInCheck.new
     g.update(options.clean)
-  elsif options.xyzzy
+  end
+  if options.xyzzy
     g = GotYouAllInCheck.new
     g.xyzzy
-  else
+  end
+  unless options.update or options.xyzzy
     puts opts
     exit
   end

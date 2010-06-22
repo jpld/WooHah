@@ -87,24 +87,6 @@ end
 
 
 
-class CommandRunner
-  # TODO - should probably grab and return stderr
-  def self.system(command)
-    %x{ #{command} }
-  end
-
-  # use openstruct
-  def self.system2(commandString)
-    out = ''
-    err = ''
-    Open3.popen3(commandString) do |stdin, stdout, stderr|
-      out = stdout.read
-      err = stderr.read
-    end
-    out
-  end
-end
-
 class GotYouAllInCheck
   attr_reader :version_latest_uri, :symlink_path, :old_path
 
@@ -159,17 +141,17 @@ class GotYouAllInCheck
     FileUtils.cd '/tmp'
 
     archive_basename = File.basename self.version_latest_uri
-    out = CommandRunner.system("curl -s -I #{self.version_latest_uri}")
+    # NB - can't migrate to safe_system since the output is needed
+    out = %x{ curl -s -I #{self.version_latest_uri} }
     if out.match(/filename=\"(.*)\"/)
       archive_basename = $1
     end
 
     puts "downloading '#{archive_basename}'"
 
-    # CommandRunner.system("curl -s #{self.version_latest_uri} -o #{archive_basename}")
-    curl self.version_latest_uri, '-o', archive_basename
+    curl(self.version_latest_uri, '-o', archive_basename)
     # unarchive
-    CommandRunner.system("tar -jxvf #{archive_basename}")
+    safe_system('tar', '-jxvf', archive_basename)
     FileUtils.rm archive_basename
 
     unarchived_basename = File.basename(archive_basename, '.tar.bz2')
@@ -180,7 +162,7 @@ class GotYouAllInCheck
     end
 
     # rid ourselves of .svn directories
-    CommandRunner.system("find #{unarchived_basename} -name .svn -print0 | xargs -0 rm -rf")
+    quiet_system('find', unarchived_basename, '-name', '.svn', '-print0', '|', 'xargs', '-0', 'rm', '-rf')
 
     install_path = File.expand_path(CHECKER_INSTALL_LOCATION)
     # TODO - check for write privs

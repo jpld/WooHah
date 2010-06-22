@@ -136,6 +136,12 @@ class GotYouAllInCheck
       exit
     end
 
+    if self.version_installed.nil? or self.version_installed.empty?
+      puts "installing #{self.version_latest}"
+    else
+      puts "updating from #{self.version_installed} to #{self.version_latest}"
+    end
+
     # download archive
     # if we bring in rubycocoa use NSDownloadsDirectory
     FileUtils.cd '/tmp'

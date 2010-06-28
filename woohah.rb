@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 #
 #  Created by jpld on 19 May 2010.
-#  Copyright (c) 2010 __MyCompanyName__. All rights reserved.
+#  Copyright (c) 2010 jpld. All rights reserved.
 
 require 'open3'
 require 'ostruct'
